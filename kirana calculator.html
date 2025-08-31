@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirana Calculator 3D</title>
+    <style>
+        /* Define color variables for both themes */
+        :root {
+            /* Light Theme */
+            --bg-color-light: #e0e5ec;
+            --primary-color-light: #3b82f6;
+            --text-color-light: #374151;
+            --card-color-light: #e0e5ec;
+            --shadow-light-light: #ffffff;
+            --shadow-dark-light: #a3b1c6;
+            --inset-shadow-light-light: #a3b1c6;
+            --inset-shadow-dark-light: #ffffff;
+
+            /* Dark Theme */
+            --bg-color-dark: #2c2f3b;
+            --primary-color-dark: #60a5fa;
+            --text-color-dark: #e5e7eb;
+            --card-color-dark: #2c2f3b;
+            --shadow-light-dark: #373a47;
+            --shadow-dark-dark: #21242f;
+            --inset-shadow-light-dark: #21242f;
+            --inset-shadow-dark-dark: #373a47;
+            
+            /* Default to dark theme */
+            --bg-color: var(--bg-color-dark);
+            --primary-color: var(--primary-color-dark);
+            --text-color: var(--text-color-dark);
+            --card-color: var(--card-color-dark);
+            --shadow-light: var(--shadow-light-dark);
+            --shadow-dark: var(--shadow-dark-dark);
+            --inset-shadow-light: var(--inset-shadow-light-dark);
+            --inset-shadow-dark: var(--inset-shadow-dark-dark);
+        }
+
+        /* Apply light theme variables when data-theme is 'light' */
+        [data-theme="light"] {
+            --bg-color: var(--bg-color-light);
+            --primary-color: var(--primary-color-light);
+            --text-color: var(--text-color-light);
+            --card-color: var(--card-color-light);
+            --shadow-light: var(--shadow-light-light);
+            --shadow-dark: var(--shadow-dark-light);
+            --inset-shadow-light: var(--inset-shadow-light-light);
+            --inset-shadow-dark: var(--inset-shadow-dark-light);
+        }
+
+        /* Basic Setup */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+        }
+        
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* Main App Container with 3D effect */
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-color);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: -8px -8px 16px var(--shadow-light), 8px 8px 16px var(--shadow-dark);
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        #hamburger-menu {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.75rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Input Groups */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            box-shadow: inset -5px -5px 10px var(--inset-shadow-light), inset 5px 5px 10px var(--inset-shadow-dark);
+        }
+        
+        .input-wrapper span {
+            margin-right: 0.5rem;
+            font-weight: 500;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-color);
+            font-size: inherit;
+        }
+        
+        .input-wrapper input::placeholder {
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+        
+        /* Chip buttons */
+        .chips {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            flex-grow: 1;
+            padding: 0.6rem 0.5rem;
+            border: none;
+            border-radius: 10px;
+            background-color: var(--card-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
+            transition: box-shadow 0.2s ease, color 0.2s ease;
+        }
+
+        .chip:active, .chip.active {
+            box-shadow: inset -5px -5px 10px var(--inset-shadow-light), inset 5px 5px 10px var(--inset-shadow-dark);
+            color: var(--primary-color);
+        }
+
+        /* Toggle Buttons (for unit and mode) */
+        .toggle-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .toggle-btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--card-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: -5px -5px 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
+            transition: box-shadow 0.2s ease, color 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            box-shadow: inset -5px -5px 10px var(--inset-shadow-light), inset 5px 5px 10px var(--inset-shadow-dark);
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .toggle-btn span {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* Result Display */
+        #result-display {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        #result-display p {
+             margin: 0;
+             font-size: 2.5rem;
+             font-weight: 700;
+             color: var(--primary-color);
+        }
+        
+        #result-display small {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        #calculate-btn {
+            background: linear-gradient(145deg, #4e9aff, #3b82f6);
+            color: white;
+            font-size: 1.1rem;
+        }
+        [data-theme="dark"] #calculate-btn {
+             background: linear-gradient(145deg, #70b5ff, #60a5fa);
+             color: var(--bg-color-dark);
+        }
+
+        #clear-btn {
+            opacity: 0.8;
+        }
+        
+        /* Tip */
+        .tip {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 2rem;
+        }
+
+        /* Hamburger Menu (re-styled from original) */
+        #menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background-color: var(--bg-color);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+            transition: left 0.3s ease-in-out;
+            z-index: 1001;
+            padding: 2rem;
+        }
+
+        #menu.open { left: 0; }
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); display: none; z-index: 1000;
+        }
+        #overlay.show { display: block; }
+        #close-menu {
+            position: absolute; top: 1rem; right: 1rem;
+            font-size: 2rem; background: none; border: none;
+            color: var(--text-color); cursor: pointer;
+        }
+        #menu ul { list-style: none; padding: 4rem 0 0 0; margin: 0; }
+        #menu li {
+            padding: 1rem 0; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid var(--shadow-dark);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="overlay"></div>
+    <nav id="menu">
+        <button id="close-menu" aria-label="Close Menu">&times;</button>
+        <ul>
+            <li>
+                <label for="dark-mode-toggle" data-lang-key="darkMode">Dark Mode</label>
+                <input type="checkbox" id="dark-mode-toggle">
+            </li>
+            <li>
+                <label for="language-select" data-lang-key="language">Language</label>
+                <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी</option>
+                </select>
+            </li>
+            <li>
+                <label for="sound-toggle" data-lang-key="sound">Sound</label>
+                <input type="checkbox" id="sound-toggle">
+            </li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <header>
+            <h1 data-lang-key="title">Kirana Calculator</h1>
+            <button id="hamburger-menu" aria-label="Open Menu">&#9776;</button>
+        </header>
+
+        <section class="input-group">
+            <label for="price" data-lang-key="pricePerUnitLabel">Price per unit (₹/kg or ₹/g)</label>
+            <div class="input-wrapper">
+                <span>₹</span>
+                <input type="number" id="price" inputmode="decimal" placeholder="Enter price">
+            </div>
+            <div class="chips" id="price-chips">
+                <button class="chip">40</button>
+                <button class="chip">50</button>
+                <button class="chip">75</button>
+                <button class="chip">100</button>
+            </div>
+        </section>
+
+        <section class="toggle-group">
+            <button class="toggle-btn active" id="unit-kg-btn" data-unit="kg" data-lang-key="perKg">Per kg</button>
+            <button class="toggle-btn" id="unit-g-btn" data-unit="g" data-lang-key="perG">Per g</button>
+        </section>
+
+        <section class="toggle-group">
+            <button class="toggle-btn active" id="mode-p2w-btn" data-mode="price-to-weight">
+                ₹ → g <span data-lang-key="priceToWeight">Price to Weight</span>
+            </button>
+            <button class="toggle-btn" id="mode-w2p-btn" data-mode="weight-to-price">
+                g → ₹ <span data-lang-key="weightToPrice">Weight to Price</span>
+            </button>
+        </section>
+        
+        <section class="input-group">
+            <label for="amount" id="amount-label" data-lang-key="customerAmount">Customer Amount (₹)</label>
+            <div class="input-wrapper">
+                <span id="amount-prefix">₹</span>
+                <input type="number" id="amount" inputmode="decimal" placeholder="Enter amount">
+            </div>
+            <div class="chips" id="amount-chips">
+                <button class="chip">10</button>
+                <button class="chip">20</button>
+                <button class="chip">50</button>
+                <button class="chip">100</button>
+            </div>
+        </section>
+
+        <div id="result-display">
+             <small id="result-label" data-lang-key="weight">Weight</small>
+             <p id="result-value">0 g</p>
+        </div>
+
+        <section class="action-buttons">
+            <button class="chip" id="clear-btn" data-lang-key="clear">Clear</button>
+            <button class="chip" id="calculate-btn" data-lang-key="calculate">Calculate</button>
+        </section>
+
+        <p class="tip" data-lang-key="tip">Tip: Enter price per unit once, then tap amount chips for quick calculations.</p>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Element Selection ---
+        const priceInput = document.getElementById('price');
+        const amountInput = document.getElementById('amount');
+        const priceChips = document.getElementById('price-chips');
+        const amountChips = document.getElementById('amount-chips');
+        const unitKgBtn = document.getElementById('unit-kg-btn');
+        const unitGBtn = document.getElementById('unit-g-btn');
+        const modeP2WBtn = document.getElementById('mode-p2w-btn');
+        const modeW2PBtn = document.getElementById('mode-w2p-btn');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const resultLabel = document.getElementById('result-label');
+        const resultValue = document.getElementById('result-value');
+        const amountLabel = document.getElementById('amount-label');
+        const amountPrefix = document.getElementById('amount-prefix');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const languageSelect = document.getElementById('language-select');
+        const soundToggle = document.getElementById('sound-toggle');
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const closeMenuBtn = document.getElementById('close-menu');
+        const menu = document.getElementById('menu');
+        const overlay = document.getElementById('overlay');
+
+        // --- State Variables ---
+        let currentMode = 'price-to-weight'; // or 'weight-to-price'
+        let currentUnit = 'kg'; // or 'g'
+        let textToSpeechEnabled = true;
+
+        // --- Translations ---
+        const translations = {
+            en: {
+                title: 'Kirana Calculator', pricePerUnitLabel: 'Price per unit (₹/kg or ₹/g)',
+                perKg: 'Per kg', perG: 'Per g', priceToWeight: 'Price to Weight',
+                weightToPrice: 'Weight to Price', customerAmount: 'Customer Amount (₹)',
+                customerWeight: 'Customer Weight (g)', weight: 'Weight', price: 'Price',
+                clear: 'Clear', calculate: 'Calculate',
+                tip: 'Tip: Enter price per unit once, then tap amount chips for quick calculations.',
+                weightGrams: 'Weight is {value} grams', priceRupees: 'Price is {value} rupees',
+                darkMode: 'Dark Mode', language: 'Language', sound: 'Sound'
+            },
+            hi: {
+                title: 'किराना कैलकुलेटर', pricePerUnitLabel: 'मूल्य प्रति इकाई (₹/kg or ₹/g)',
+                perKg: 'प्रति किलो', perG: 'प्रति ग्राम', priceToWeight: 'मूल्य से वजन',
+                weightToPrice: 'वजन से मूल्य', customerAmount: 'ग्राहक राशि (₹)',
+                customerWeight: 'ग्राहक वजन (g)', weight: 'वजन', price: 'मूल्य',
+                clear: 'साफ़ करें', calculate: 'गणना करें',
+                tip: 'युक्ति: एक बार प्रति यूनिट मूल्य दर्ज करें, फिर त्वरित गणना के लिए चिप्स पर टैप करें।',
+                weightGrams: 'वजन {value} ग्राम है', priceRupees: 'मूल्य {value} रुपये है',
+                darkMode: 'डार्क मोड', language: 'भाषा', sound: 'ध्वनि'
+            }
+        };
+
+        // --- Functions ---
+
+        const setLanguage = (lang) => {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            updateDynamicLabels(lang);
+        };
+
+        const updateDynamicLabels = (lang = languageSelect.value) => {
+            if (currentMode === 'price-to-weight') {
+                amountLabel.textContent = translations[lang].customerAmount;
+                amountPrefix.textContent = '₹';
+                amountInput.placeholder = "Enter amount";
+                amountChips.innerHTML = `<button class="chip">10</button><button class="chip">20</button><button class="chip">50</button><button class="chip">100</button>`;
+                resultLabel.textContent = translations[lang].weight;
+                resultValue.textContent = '0 g';
+            } else {
+                amountLabel.textContent = translations[lang].customerWeight;
+                amountPrefix.textContent = 'g';
+                amountInput.placeholder = "Enter weight";
+                amountChips.innerHTML = `<button class="chip">50</button><button class="chip">100</button><button class="chip">250</button><button class="chip">500</button>`;
+                resultLabel.textContent = translations[lang].price;
+                resultValue.textContent = '₹ 0.00';
+            }
+        };
+        
+        const speakResult = (text, lang) => {
+            if (!textToSpeechEnabled || !('speechSynthesis' in window)) return;
+            speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+            speechSynthesis.speak(utterance);
+        };
+
+        const calculate = () => {
+            const price = parseFloat(priceInput.value);
+            const amount = parseFloat(amountInput.value);
+            
+            if (isNaN(price) || isNaN(amount) || price <= 0 || amount <= 0) {
+                // Optionally show an error
+                return;
+            }
+
+            let result = 0;
+            const lang = languageSelect.value;
+            
+            if (currentMode === 'price-to-weight') {
+                result = (currentUnit === 'kg') ? (amount / price) * 1000 : amount / price;
+                const finalResult = Math.round(result);
+                resultValue.textContent = `${finalResult} g`;
+                speakResult(translations[lang].weightGrams.replace('{value}', finalResult), lang);
+            } else {
+                result = (currentUnit === 'kg') ? (amount / 1000) * price : amount * price;
+                const finalResult = result.toFixed(2);
+                resultValue.textContent = `₹ ${finalResult}`;
+                speakResult(translations[lang].priceRupees.replace('{value}', finalResult), lang);
+            }
+        };
+
+        const clearInputs = () => {
+            priceInput.value = '';
+            amountInput.value = '';
+            updateDynamicLabels();
+        };
+
+        const loadSettings = () => {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            darkModeToggle.checked = theme === 'dark';
+
+            const lang = localStorage.getItem('language') || 'en';
+            languageSelect.value = lang;
+            setLanguage(lang);
+
+            const sound = localStorage.getItem('sound');
+            textToSpeechEnabled = sound === null ? true : JSON.parse(sound);
+            soundToggle.checked = textToSpeechEnabled;
+
+            priceInput.value = localStorage.getItem('pricePerUnit') || '';
+            currentUnit = localStorage.getItem('unit') || 'kg';
+            if(currentUnit === 'g') {
+                unitKgBtn.classList.remove('active');
+                unitGBtn.classList.add('active');
+            }
+        };
+
+        const saveSettings = () => {
+            localStorage.setItem('theme', darkModeToggle.checked ? 'dark' : 'light');
+            localStorage.setItem('language', languageSelect.value);
+            localStorage.setItem('sound', soundToggle.checked);
+            localStorage.setItem('pricePerUnit', priceInput.value);
+            localStorage.setItem('unit', currentUnit);
+        };
+        
+        // --- Event Listeners ---
+
+        priceChips.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                priceInput.value = e.target.textContent;
+                if (amountInput.value) calculate();
+            }
+        });
+
+        amountChips.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                amountInput.value = e.target.textContent;
+                calculate();
+            }
+        });
+
+        unitKgBtn.addEventListener('click', () => {
+            currentUnit = 'kg';
+            unitKgBtn.classList.add('active');
+            unitGBtn.classList.remove('active');
+        });
+
+        unitGBtn.addEventListener('click', () => {
+            currentUnit = 'g';
+            unitGBtn.classList.add('active');
+            unitKgBtn.classList.remove('active');
+        });
+
+        modeP2WBtn.addEventListener('click', () => {
+            currentMode = 'price-to-weight';
+            modeP2WBtn.classList.add('active');
+            modeW2PBtn.classList.remove('active');
+            updateDynamicLabels();
+        });
+
+        modeW2PBtn.addEventListener('click', () => {
+            currentMode = 'weight-to-price';
+            modeW2PBtn.classList.add('active');
+            modeP2WBtn.classList.remove('active');
+            updateDynamicLabels();
+        });
+
+        calculateBtn.addEventListener('click', calculate);
+        clearBtn.addEventListener('click', clearInputs);
+        
+        // Menu Listeners
+        darkModeToggle.addEventListener('change', () => {
+            document.documentElement.setAttribute('data-theme', darkModeToggle.checked ? 'dark' : 'light');
+            saveSettings();
+        });
+        languageSelect.addEventListener('change', () => setLanguage(languageSelect.value));
+        soundToggle.addEventListener('change', () => textToSpeechEnabled = soundToggle.checked);
+        
+        const closeMenu = () => {
+            menu.classList.remove('open');
+            overlay.classList.remove('show');
+        };
+        hamburgerMenu.addEventListener('click', () => {
+            menu.classList.add('open');
+            overlay.classList.add('show');
+        });
+        closeMenuBtn.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+        
+        // Save settings on unload
+        window.addEventListener('beforeunload', saveSettings);
+
+        // --- Initial Load ---
+        loadSettings();
+    });
+    </script>
+</body>
+</html>
