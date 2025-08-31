@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kirana Calculator — ₹ ↔ g</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #3b82f6;
+      --primary-press: #2563eb;
+      --ring: #dbeafe;
+      --ok: #22c55e;
+      --chip: #f1f5f9;
+      --chip-active: #e0e7ff;
+      --shadow: 0 4px 12px rgba(2, 8, 23, 0.06), 0 2px 6px rgba(2, 8, 23, 0.04);
+      --gradient-btn: linear-gradient(135deg, #3b82f6, #60a5fa);
+      --radius: 18px;
+    }
+    [data-theme="dark"] {
+      --bg: #1e293b;
+      --card: #2d3748;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --chip: #4b5563;
+      --chip-active: #5b728a;
+      --ring: #4b7289;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background 0.3s, color 0.3s;
+    }
+    .wrap { max-width: 520px; margin-inline: auto; padding: 24px 18px 48px; }
+    .app {
+      background: var(--card);
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: background 0.3s;
+    }
+    [data-theme="dark"] .app { border-color: #4b5563; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .title { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; margin: 12px 4px 24px; }
+    .hamburger { background: none; border: none; cursor: pointer; padding: 8px; }
+    .hamburger svg { width: 28px; height: 28px; color: var(--text); }
+    .menu {
+      position: fixed; top: 0; right: -100%; width: 250px; height: 100%;
+      background: var(--card); box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+      padding: 20px; transition: right 0.3s ease-in-out; z-index: 1000;
+    }
+    .menu.open { right: 0; }
+    .menu button, .menu select { display: block; width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border-radius: 8px; border: 1px solid #e5e7eb; background: var(--chip); color: var(--text); cursor: pointer; }
+    .menu button.active { background: var(--primary); color: #fff; }
+    .menu select { background: var(--chip); }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); opacity: 0; visibility: hidden; transition: opacity 0.3s; z-index: 999; }
+    .overlay.active { opacity: 1; visibility: visible; }
+    .row { margin: 12px 2px; }
+    label { display: block; font-size: 14px; color: var(--muted); margin: 6px 2px 8px; }
+    .field {
+      display: flex; align-items: center; gap: 10px;
+      border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 12px 14px;
+      background: #fff; transition: border 0.15s, box-shadow 0.15s;
+    }
+    [data-theme="dark"] .field { background: #374151; border-color: #4b5563; }
+    .field:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px var(--ring); }
+    .icon { width: 22px; height: 22px; color: var(--muted); flex: 0 0 auto; }
+    input[type="number"] {
+      width: 100%; border: 0; outline: 0; font-size: 22px; font-weight: 600; background: transparent; color: var(--text);
+    }
+    .seg {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;
+    }
+    .seg button {
+      border: 0; border-radius: 16px; padding: 14px 12px; font-size: 15px; font-weight: 700;
+      background: #eef2f7; color: #0b1324; cursor: pointer; transition: background 0.2s;
+    }
+    [data-theme="dark"] .seg button { background: #4b5563; color: #e2e8f0; }
+    .seg button.active { background: var(--primary); color: #fff; }
+    .seg button:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .chip {
+      background: var(--chip); border: 1px solid #e5e7eb; border-radius: 999px;
+      padding: 9px 14px; font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    }
+    [data-theme="dark"] .chip { border-color: #4b5563; }
+    .chip:hover { background: var(--chip-active); border-color: var(--primary); transform: translateY(-1px); }
+    .chip.active { background: var(--chip-active); border-color: #bfdbfe; }
+    .chip:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .btn {
+      width: 100%; border: 0; border-radius: 16px; padding: 15px 16px;
+      font-size: 18px; font-weight: 800; cursor: pointer; transition: background 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn.primary { background: var(--gradient-btn); color: #fff; }
+    .btn.primary:hover { background: var(--primary-press); }
+    .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.ghost { background: #fff; border: 1.5px solid #e5e7eb; color: #0b1324; }
+    [data-theme="dark"] .btn.ghost { background: #374151; border-color: #4b5563; color: #e2e8f0; }
+    .result {
+      margin-top: 16px; border: 2px dashed transparent;
+      background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(135deg, #22c55e, #86efac) border-box;
+      border-radius: 20px; padding: 20px; text-align: center;
+    }
+    .result .label { color: var(--muted); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .result .value { color: var(--ok); font-weight: 900; font-size: 48px; letter-spacing: -0.5px; }
+    .stack { display: grid; gap: 12px; }
+    .grid2 { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+    .row.stack { position: sticky; bottom: 16px; background: var(--card); padding: 12px 0; z-index: 10; }
+    .footnote { margin-top: 12px; color: var(--muted); font-size: 12px; text-align: center; }
+    /* Mobile tweaks */
+    @media (max-width: 420px) {
+      .title { font-size: 28px; }
+      .result .value { font-size: 40px; }
+      .chip { padding: 8px 12px; font-size: 13px; }
+    }
+    @media (min-width: 421px) {
+      .row.stack { position: static; padding: 0; }
+    }
+    /* High contrast mode */
+    @media (prefers-contrast: high) {
+      :root {
+        --text: #000000;
+        --bg: #ffffff;
+        --card: #ffffff;
+        --primary: #003087;
+        --ok: #006400;
+        --muted: #333333;
+      }
+      .field { border: 2px solid #000000; }
+      .chip { border: 2px solid #000000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="app">
+      <div class="header">
+        <div class="title" id="title">Kirana Calculator</div>
+        <button class="hamburger" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="menu" id="menu">
+        <button id="closeMenu" aria-label="Close menu">Close</button>
+        <button id="darkModeToggle" aria-label="Toggle dark mode">Dark Mode: Off</button>
+        <select id="languageSelect" aria-label="Select language">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+        </select>
+        <button id="soundToggle" class="active" aria-label="Toggle sound">Sound: On</button>
+      </div>
+      <div class="overlay" id="overlay"></div>
+
+      <!-- Price per Unit -->
+      <div class="row">
+        <label for="pricePerKg" id="priceLabel">Price per unit (₹/किलो or ₹/ग्राम)</label>
+        <div class="field">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7H14a3.5 3.5 0 1 1 0 7H6"/>
+          </svg>
+          <input id="pricePerKg" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Enter price" aria-label="Price per unit in rupees" />
+        </div>
+        <div class="chips" id="priceChips">
+          <button class="chip" data-val="40">₹40</button>
+          <button class="chip" data-val="50">₹50</button>
+          <button class="chip" data-val="75">₹75</button>
+          <button class="chip" data-val="100">₹100</button>
+        </div>
+        <div class="seg" id="unitSeg">
+          <button class="active" data-unit="kg">Per kg</button>
+          <button data-unit="g">Per g</button>
+        </div>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="row seg" id="modeSeg">
+        <button class="active" data-mode="p2w">₹ → g<br><small style="font-weight:600">Price to Weight</small></button>
+        <button data-mode="w2p">g → ₹<br><small style="font-weight:600">Weight to Price</small></button>
+      </div>
+
+      <!-- Dynamic Input Area -->
+      <div class="row" id="dynamicInput">
+        <label for="dynInput" id="dynLabel">Customer Amount (₹/रुपए)</label>
+        <div class="field">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 1 0 0 7H14a3.5 3.5 0 1 1 0 7H6"/>
+          </svg>
+          <input id="dynInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Enter amount" aria-label="Customer amount in rupees" />
+        </div>
+        <div class="chips" id="dynChips"></div>
+      </div>
+
+      <div class="row stack">
+        <button class="btn primary" id="calcBtn" disabled aria-label="Calculate result">Calculate</button>
+        <button class="btn ghost" id="clearBtn" aria-label="Clear inputs">Clear</button>
+      </div>
+
+      <div class="result" id="resultBox" style="display:none">
+        <div class="label" id="resultLabel">Weight</div>
+        <div class="value" id="resultValue">—</div>
+      </div>
+
+      <div class="footnote" id="footnote">Tip: Enter price per unit once, then tap chips for quick calculations.</div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const pricePerKg = document.getElementById('pricePerKg');
+      const priceChips = document.getElementById('priceChips');
+      const unitSeg = document.getElementById('unitSeg');
+      const modeSeg = document.getElementById('modeSeg');
+      const dynLabel = document.getElementById('dynLabel');
+      const dynInput = document.getElementById('dynInput');
+      const dynChips = document.getElementById('dynChips');
+      const calcBtn = document.getElementById('calcBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const resultBox = document.getElementById('resultBox');
+      const resultLabel = document.getElementById('resultLabel');
+      const resultValue = document.getElementById('resultValue');
+      const hamburger = document.querySelector('.hamburger');
+      const menu = document.getElementById('menu');
+      const overlay = document.getElementById('overlay');
+      const closeMenu = document.getElementById('closeMenu');
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      const languageSelect = document.getElementById('languageSelect');
+      const soundToggle = document.getElementById('soundToggle');
+      const title = document.getElementById('title');
+      const priceLabel = document.getElementById('priceLabel');
+      const footnote = document.getElementById('footnote');
+
+      let mode = 'p2w';
+      let unit = 'kg';
+      let language = 'en';
+      let soundEnabled = true;
+
+      // Language data
+      const translations = {
+        en: {
+          title: 'Kirana Calculator',
+          priceLabel: 'Price per unit (₹/kg or ₹/g)',
+          amountLabel: 'Customer Amount (₹)',
+          weightLabel: 'Weight (g)',
+          modeP2W: 'Price to Weight',
+          modeW2P: 'Weight to Price',
+          resultWeight: 'Weight',
+          resultPrice: 'Price',
+          placeholderPrice: 'Enter price',
+          placeholderAmount: 'Enter amount',
+          placeholderWeight: 'Enter grams',
+          unitKg: 'Per kg',
+          unitG: 'Per g',
+          calcBtn: 'Calculate',
+          clearBtn: 'Clear',
+          footnote: 'Tip: Enter price per unit once, then tap chips for quick calculations.'
+        },
+        hi: {
+          title: 'किराना कैलकुलेटर',
+          priceLabel: 'प्रति यूनिट मूल्य (₹/किलो या ₹/ग्राम)',
+          amountLabel: 'ग्राहक राशि (₹/रुपए)',
+          weightLabel: 'वजन (ग्राम)',
+          modeP2W: 'मूल्य से वजन',
+          modeW2P: 'वजन से मूल्य',
+          resultWeight: 'वजन',
+          resultPrice: 'मूल्य',
+          placeholderPrice: 'मूल्य दर्ज करें',
+          placeholderAmount: 'राशि दर्ज करें',
+          placeholderWeight: 'ग्राम दर्ज करें',
+          unitKg: 'प्रति किलो',
+          unitG: 'प्रति ग्राम',
+          calcBtn: 'गणना करें',
+          clearBtn: 'साफ़ करें',
+          footnote: 'टिप: प्रति यूनिट मूल्य एक बार दर्ज करें, फिर त्वरित गणना के लिए चिप्स पर टैप करें।'
+        }
+      };
+
+      // Helpers
+      const fmtRupee = (n) => '₹' + (Math.round(n * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: (n % 1 ? 2 : 0), maximumFractionDigits: 2 });
+      const fmtGram = (g) => Math.round(g) + ' g';
+      const debounce = (fn, delay) => {
+        let timeout;
+        return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => fn(...args), delay);
+        };
+      };
+      const speakResult = (text) => {
+        if (!soundEnabled) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
+        speechSynthesis.speak(utterance);
+      };
+      const enableCalcIfValid = debounce(() => {
+        const p = parseFloat(pricePerKg.value);
+        const x = parseFloat(dynInput.value);
+        calcBtn.disabled = !(isFinite(p) && p > 0 && isFinite(x) && x > 0);
+        if (!calcBtn.disabled) calcBtn.click();
+      }, 300);
+
+      // Build chips
+      const chipsData = {
+        p2w: [10, 20, 50, 100].map(v => ({ label: `₹${v}`, val: v })),
+        w2p: [50, 100, 250, 500].map(v => ({ label: `${v} g`, val: v }))
+      };
+      const renderDynChips = () => {
+        dynChips.innerHTML = '';
+        for (const c of chipsData[mode]) {
+          const b = document.createElement('button');
+          b.className = 'chip';
+          b.textContent = c.label;
+          b.dataset.val = c.val;
+          dynChips.appendChild(b);
+        }
+      };
+
+      // Mode and Unit Handling
+      const setMode = (m) => {
+        mode = m;
+        [...modeSeg.children].forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === mode);
+          btn.querySelector('small').textContent = translations[language][`mode${m === 'p2w' ? 'P2W' : 'W2P'}`];
+        });
+        dynLabel.textContent = mode === 'p2w' ? translations[language].amountLabel : translations[language].weightLabel;
+        dynInput.placeholder = mode === 'p2w' ? translations[language].placeholderAmount : translations[language].placeholderWeight;
+        dynInput.setAttribute('aria-label', mode === 'p2w' ? translations[language].amountLabel : translations[language].weightLabel);
+        resultLabel.textContent = mode === 'p2w' ? translations[language].resultWeight : translations[language].resultPrice;
+        dynInput.value = '';
+        resultBox.style.display = 'none';
+        renderDynChips();
+        enableCalcIfValid();
+      };
+
+      const setUnit = (u) => {
+        unit = u;
+        [...unitSeg.children].forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.unit === unit);
+          btn.textContent = translations[language][`unit${u === 'kg' ? 'Kg' : 'G'}`];
+        });
+        pricePerKg.value = '';
+        dynInput.value = '';
+        resultBox.style.display = 'none';
+        localStorage.setItem('kiranaUnit', unit);
+        enableCalcIfValid();
+      };
+
+      const setLanguage = (lang) => {
+        language = lang;
+        localStorage.setItem('kiranaLanguage', lang);
+        title.textContent = translations[lang].title;
+        priceLabel.textContent = translations[lang].priceLabel;
+        calcBtn.textContent = translations[lang].calcBtn;
+        clearBtn.textContent = translations[lang].clearBtn;
+        footnote.textContent = translations[lang].footnote;
+        pricePerKg.placeholder = translations[lang].placeholderPrice;
+        setMode(mode);
+        setUnit(unit);
+      };
+
+      // Dark Mode
+      const setTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        darkModeToggle.textContent = `Dark Mode: ${theme === 'dark' ? 'On' : 'Off'}`;
+        darkModeToggle.classList.toggle('active', theme === 'dark');
+        localStorage.setItem('kiranaTheme', theme);
+      };
+
+      // Load state
+      const loadState = () => {
+        const savedPrice = localStorage.getItem('kiranaPricePerKg');
+        const savedUnit = localStorage.getItem('kiranaUnit') || 'kg';
+        const savedTheme = localStorage.getItem('kiranaTheme') || 'light';
+        const savedLang = localStorage.getItem('kiranaLanguage') || 'en';
+        const savedSound = localStorage.getItem('kiranaSound') || 'true';
+        if (savedPrice) pricePerKg.value = savedPrice;
+        soundEnabled = savedSound === 'true';
+        soundToggle.textContent = `Sound: ${soundEnabled ? 'On' : 'Off'}`;
+        soundToggle.classList.toggle('active', soundEnabled);
+        setTheme(savedTheme);
+        setLanguage(savedLang);
+        languageSelect.value = savedLang;
+        setUnit(savedUnit);
+        setMode('p2w');
+      };
+      loadState();
+
+      // Menu handling
+      hamburger.addEventListener('click', () => {
+        menu.classList.add('open');
+        overlay.classList.add('active');
+      });
+      closeMenu.addEventListener('click', () => {
+        menu.classList.remove('open');
+        overlay.classList.remove('active');
+      });
+      overlay.addEventListener('click', () => {
+        menu.classList.remove('open');
+        overlay.classList.remove('active');
+      });
+
+      // Events
+      darkModeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(currentTheme === 'light' ? 'dark' : 'light');
+      });
+
+      languageSelect.addEventListener('change', (e) => {
+        setLanguage(e.target.value);
+      });
+
+      soundToggle.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundToggle.textContent = `Sound: ${soundEnabled ? 'On' : 'Off'}`;
+        soundToggle.classList.toggle('active', soundEnabled);
+        localStorage.setItem('kiranaSound', soundEnabled);
+      });
+
+      priceChips.addEventListener('click', (e) => {
+        const b = e.target.closest('.chip');
+        if (!b) return;
+        pricePerKg.value = b.dataset.val;
+        localStorage.setItem('kiranaPricePerKg', pricePerKg.value);
+        enableCalcIfValid();
+        [...priceChips.children].forEach(x => x.classList.toggle('active', x === b));
+      });
+
+      dynChips.addEventListener('click', (e) => {
+        const b = e.target.closest('.chip');
+        if (!b) return;
+        dynInput.value = b.dataset.val;
+        enableCalcIfValid();
+        [...dynChips.children].forEach(x => x.classList.toggle('active', x === b));
+      });
+
+      modeSeg.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        setMode(b.dataset.mode);
+      });
+
+      unitSeg.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        setUnit(b.dataset.unit);
+      });
+
+      pricePerKg.addEventListener('input', () => {
+        localStorage.setItem('kiranaPricePerKg', pricePerKg.value);
+        enableCalcIfValid();
+      });
+      dynInput.addEventListener('input', enableCalcIfValid);
+
+      clearBtn.addEventListener('click', () => {
+        pricePerKg.value = '';
+        dynInput.value = '';
+        resultBox.style.display = 'none';
+        [...priceChips.children].forEach(x => x.classList.remove('active'));
+        renderDynChips();
+        localStorage.removeItem('kiranaPricePerKg');
+        enableCalcIfValid();
+      });
+
+      calcBtn.addEventListener('click', () => {
+        let p = parseFloat(pricePerKg.value);
+        const x = parseFloat(dynInput.value);
+        if (!(p > 0 && x > 0)) return;
+        if (unit === 'g') p = p * 1000;
+        let resultText;
+        if (mode === 'p2w') {
+          const grams = (x / p) * 1000;
+          resultLabel.textContent = translations[language].resultWeight;
+          resultValue.textContent = fmtGram(grams);
+          resultText = language === 'hi' ? `वजन ${Math.round(grams)} ग्राम है` : `Weight is ${Math.round(grams)} grams`;
+        } else {
+          const price = (x / 1000) * p;
+          resultLabel.textContent = translations[language].resultPrice;
+          resultValue.textContent = fmtRupee(price);
+          resultText = language === 'hi' ? `मूल्य ${fmtRupee(price)} है` : `Price is ${fmtRupee(price)}`;
+        }
+        resultBox.style.display = 'block';
+        speakResult(resultText);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !calcBtn.disabled) calcBtn.click();
+      });
+    })();
+  </script>
+</body>
+</html>
